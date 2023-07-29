@@ -1,22 +1,23 @@
-pipeline {
-    agent any
-    options([
+properties([
     parameters([
         activeChoiceReactiveParam(name: 'FILE',
-            choices: 'ls k8s/*.yaml',
             description: 'Choose YAML file to apply/delete',
             script: [
                 $class: 'GroovyScript',
                 scriptSource: [
                     $class: 'ScriptSourceFromInline',
-                    inline: 'return [""] + readFile("k8s/*.yaml").split("\\n")'
+                    inline: 'return readFile("k8s/*.yaml").split("\\n") + ["SELECT_ALL"]'
                 ]
             ]
         ),
         choice(name: 'ACTION', choices: ['APPLY', 'DELETE', 'APPLY_ALL', 'DELETE_ALL'], description: 'What action should be taken?'),
         choice(name: 'AGENT', choices: ['agent1', 'agent2', 'jenkinsmaster'], description: 'Which agent should perform the action?')
-        ])
     ])
+])
+pipeline {
+
+    agent any
+
     environment {
         AWS_PROFILE = 'vscode'
     }
