@@ -1,33 +1,30 @@
 pipeline {
-    agent any
-
+    properties([
+        parameters([
+            activeChoiceReactiveParam(name: 'FILE',
+                choices: 'ls k8s/*.yaml',
+                description: 'Choose YAML file to apply/delete',
+                script: [
+                    $class: 'GroovyScript',
+                    scriptSource: [
+                        $class: 'ScriptSourceFromInline',
+                        inline: 'return [""] + readFile("k8s/*.yaml").split("\\n")'
+                    ]
+                ]
+            ),
+        choice(name: 'ACTION', choices: ['APPLY', 'DELETE', 'APPLY_ALL', 'DELETE_ALL'], description: 'What action should be taken?'),
+        choice(name: 'AGENT', choices: ['agent1', 'agent2', 'jenkinsmaster'], description: 'Which agent should perform the action?')
+        ])
+    ])
     environment {
         AWS_PROFILE = 'vscode'
     }
-
     stages {
         stage('Checkout') {
             steps {
                 checkout scm  // This checks out the Jenkinsfile's own repository by default
             }
-        }
-
-        stage('Set Parameters') {
-            steps {
-                script {
-                    // List all YAML files in the k8s folder
-                    def yamlFilesList = sh(script: "ls k8s/*.yaml", returnStdout: true).trim().split("\n")
-                    def yamlFiles = yamlFilesList.join(",")
-                    properties([
-                        parameters([
-                            choice(name: 'FILE', choices: yamlFiles, description: 'Choose YAML file to apply/delete'),
-                            choice(name: 'ACTION', choices: ['APPLY', 'DELETE', 'APPLY_ALL', 'DELETE_ALL'], description: 'What action should be taken?'),
-                            choice(name: 'AGENT', choices: ['agent1', 'agent2', 'jenkinsmaster'], description: 'Which agent should perform the action?')
-                        ])
-                    ])
-                }
-            }
-        }   
+        }  
         stage('Set Kubeconfig') {
             steps {
                 script {
@@ -50,11 +47,11 @@ pipeline {
                             break
 
                         case 'APPLY_ALL':
-                            sh "sudo kubectl apply -f /path/to/your/yamls/directory/"
+                            sh "sudo kubectl apply -f /k8s/"
                             break
 
                         case 'DELETE_ALL':
-                            sh "sudo kubectl delete -f /path/to/your/yamls/directory/"
+                            sh "sudo kubectl delete -f /k8s/"
                             break
 
                         default:
