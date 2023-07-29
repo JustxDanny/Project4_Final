@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: flask-app-container
-        image: justxdanny/app.py:1.28  # because I skipped some, now im rolling back to 1.28 from 1.31
+        image: justxdanny/app.py:1.30  # because I skipped some, now im rolling back to 1.28 from 1.31
         imagePullPolicy: Always
         ports:
         - containerPort: 5000

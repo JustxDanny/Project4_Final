@@ -1,0 +1,68 @@
+*) create aws user
+*) download access keys
+*) configure aws
+    💲 aws configure --profile terraform
+   
+   print configuration
+    💲 cat ~/.aws/credentials
+
+        AWS Access Key ID
+        AWS Secrey Access Key
+        Default region
+        Default output format
+
+*) create provider.tf 📁
+*) create vpc.tf 📁
+*) create internet-gateway.tf 📁
+    to comunicate with the outer world
+
+
+*) create subnets.tf
+    create 2 private subnets
+    create 2 public subnets
+
+*) creating eips.tf 📁 and nat-gateways.tf 📁
+    aws_nat_gateway allow instances access the internet. For instalations & updates etc...
+    for endpoint we'll use Elastic IP
+    We create 2 nat gateway for each awailability zone for high availability
+
+*) create routing tables inside routing-tables.tf 📁
+    Public route table
+    Private route table
+
+    assosiate the routing tables with the subnets inside route-table-association.tf 📁
+
+*) Terraform EKS Cluster Example (AWS EKS IAM Roles | AWS EKS Load Balancer | AWS EKS Node Group )
+    create EKS eks.tf 📁
+    here we define claster, aws_iam_role and attach policy to it, attach the role to eks claster
+    
+    create eks-node-groups.tf 📁 
+    here we define role --> attach policies --> define instance groups && attach roles to the instance groups
+
+Connect to the Cluster
+-----------------------
+*) Adding context to kubectl
+    💲 cat ~/.kube/config
+    💲 cat ~/.kube/config > kube_config_old.txt
+    💲 rm ~/.kube/config
+    
+
+    💲 aws eks --region us-west-2 update-kubeconfig --name eks --profile vscode
+
+    💲 kubectl get svc
+
+Demonstrate that we can create private and public load balancers - by creating a simple application
+------------------------------------------------------------------------------------------------------
+*) after creating the app.yaml file with one deployment and two LoadBallancer cervices
+💲 kubectl apply -f C:\dev\DevOps\Projects\terraform-eks\k8s\app.yaml
+        LOGS:
+        PS C:\dev\DevOps\Projects\terraform-eks> kubectl apply -f C:\dev\DevOps\Projects\terraform-eks\k8s\app.yaml
+        deployment.apps/nginx created
+        service/internal-nginx-service created
+        service/external-nginx-service created
+
+💲 kubectl get pods
+💲 kubectl get svc
+in case service is pending - we can do
+💲 kubectl describe external-nginx-service
+

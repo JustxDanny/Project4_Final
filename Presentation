@@ -1,0 +1,10 @@
+### Here we go baby , first recap then the fun begins...
+
+okay so what i want next is the following step/s:
+
+
+Jenkins ingergration: Modify your Jenkins pipeline to include steps for deploying the EKS cluster.
+ This can involve using Kubernetes CLI (kubectl) to apply the deployment files and manage the Kubernetes resources.
+
+this is my order. im pasting you the jenkinsfile in charge of my project two, i want you to use this template and create a jenkinsfile that will act as this step in my project, explain the parameters need to be set and all, so far i've configured all of the agents's aws configure profiles to be set as "vscode" as in my local machine , and will soon perform basic kubectl installations on them, i want them to be able to access my eks cluster which is created by terraform and be able to deploy and delete yaml files and applications 
+i want to be able to choose  ~~~ so far prompt for gpt continiue later
