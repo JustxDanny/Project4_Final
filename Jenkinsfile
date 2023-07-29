@@ -1,32 +1,78 @@
 properties([
-    parameters([
-        activeChoiceReactiveParam(name: 'FILE',
-            description: 'Choose YAML file to apply/delete',
-            script: [
-                $class: 'GroovyScript',
-                scriptSource: [
-                    $class: 'ScriptSourceFromInline',
-                    inline: 'return readFile("k8s/*.yaml").split("\\n") + ["SELECT_ALL"]'
-                ]
-            ]
-        ),
-        choice(name: 'ACTION', choices: ['APPLY', 'DELETE', 'APPLY_ALL', 'DELETE_ALL'], description: 'What action should be taken?'),
-        choice(name: 'AGENT', choices: ['agent1', 'agent2', 'jenkinsmaster'], description: 'Which agent should perform the action?')
-    ])
+  parameters([
+    // First parameter: Choice of YAML files or SELECT_ALL
+    [
+      $class: 'ChoiceParameter',
+      choiceType: 'PT_SINGLE_SELECT',
+      name: 'FILE',
+      script: [
+        $class: 'GroovyScript',
+        fallbackScript: [
+          classpath: [],
+          sandbox: true,
+          script: 'return ["Error"]'
+        ],
+        script: [
+          classpath: [],
+          sandbox: true,
+          script: 'return ["SELECT_ALL"] + new File("k8s/").list().findAll { it.endsWith(".yaml") }'
+        ]
+      ]
+    ],
+    
+    // Second parameter: Action based on file choice
+    [
+      $class: 'CascadeChoiceParameter',
+      choiceType: 'PT_SINGLE_SELECT',
+      name: 'ACTION',
+      referencedParameters: 'FILE',
+      script: [
+        $class: 'GroovyScript',
+        fallbackScript: [
+          classpath: [],
+          sandbox: true,
+          script: 'return ["Error"]'
+        ],
+        script: [
+          classpath: [],
+          sandbox: true,
+          script: '''
+          if (FILE == "SELECT_ALL") {
+            return ["APPLY_ALL", "DELETE_ALL"]
+          } else {
+            return ["APPLY", "DELETE"]
+          }
+          '''
+        ]
+      ]
+    ],
+    
+    // Third parameter: Choice of AGENT
+    choice(name: 'AGENT', choices: ['agent1', 'agent2', 'jenkinsmaster'], description: 'Which agent should perform the action?')
+  ])
 ])
-pipeline {
 
+pipeline {
     agent any
 
     environment {
         AWS_PROFILE = 'vscode'
     }
     stages {
+        stage('Deploy') {
+            steps {
+                echo "Selected File: ${params.FILE}"
+                echo "Selected Action: ${params.ACTION}"
+                echo "Selected Agent: ${params.AGENT}"
+            }   
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm  // This checks out the Jenkinsfile's own repository by default
             }
-        }  
+        } 
+         
         stage('Set Kubeconfig') {
             steps {
                 script {
