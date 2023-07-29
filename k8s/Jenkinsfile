@@ -1,0 +1,38 @@
+pipeline {
+    parameters {
+        choice(name: 'ACTION', choices: ['APPLY', 'DELETE'], description: 'Choose the desired action on Kubernetes')
+        choice(name: 'YAML_FILE', choices: ['select_all', 'current-configmap.yaml', 'flask-deployment.yaml', 'grafana-dashboard-deployment.yaml', 'grafana-deployment-noob.yaml', 'grafana-service.yaml', 'namespace.yaml', 'prometheus-configmap.yaml', 'prometheus-datasource-configmap.yaml', 'prometheus-deployment.yaml', 'prometheus-service.yaml'], description: 'Select the YAML file or choose select_all for all files')
+        choice(name: 'AGENT_CHOICE', choices: ['agent1', 'agent2', 'both'], description: 'Choose the agent(s) for job execution')
+    }
+    agent {
+        label 'both'
+    }
+    stages {
+        stage('Set Kubeconfig') {
+            steps {
+                script {
+                    sh 'sudo aws eks update-kubeconfig --name eks --profile vscode'
+                }
+            }
+        }
+        stage('Execute on Kubernetes') {
+            steps {
+                script {
+                      if(params.YAML_FILE == 'select_all') {
+                        if(params.ACTION == 'APPLY') {
+                            sh 'kubectl apply -f ./' // Apply all files in the current directory
+                        } else if(params.ACTION == 'DELETE') {
+                            sh 'kubectl delete -f ./' // Delete using all files in the current directory
+                        }
+                    } else {
+                        if(params.ACTION == 'APPLY') {
+                            sh "kubectl apply -f ./${params.YAML_FILE}" // Apply the specific file
+                        } else if(params.ACTION == 'DELETE') {
+                            sh "kubectl delete -f ./${params.YAML_FILE}" // Delete using the specific file
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
