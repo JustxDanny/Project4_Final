@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    properties([
+    options([
     parameters([
         activeChoiceReactiveParam(name: 'FILE',
             choices: 'ls k8s/*.yaml',
