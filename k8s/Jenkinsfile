@@ -16,23 +16,45 @@ pipeline {
             }
         }
         stage('Execute on Kubernetes') {
-          steps { 
-            script {
-              // Navigate to the k8s directory
+            steps {
+                script {
+                    // Navigate to the k8s directory
                     dir("k8s") {
                         if(params.YAML_FILE == 'select_all') {
                             if(params.ACTION == 'APPLY') {
-                                sh 'kubectl apply -f ./' // Apply all files in the current directory
+                                // If there's a specific namespace file, apply it first
+                                if (fileExists('namespace.yaml')) {
+                                    sh "kubectl apply -f namespace.yaml"
+                                    
+                                    // Wait until the namespace is active
+                                    timeout(time: 5, unit: 'MINUTES') {
+                                        waitUntil {
+                                            script {
+                                                def namespaceStatus = sh(script: "kubectl get ns monitoring --no-headers | awk '{print $2}'", returnStdout: true).trim()
+                                                return namespaceStatus == "Active"
+                                            }
+                                        }
+                                    }
+                                }
+
+                                sh 'kubectl apply -f ./' // Apply all other files in the directory
+
                             } else if(params.ACTION == 'DELETE') {
-                                sh 'kubectl delete -f ./' // Delete using all files in the current directory
+                                def resourcesExist = sh(script: "kubectl get all --selector=app=flask-app -n monitoring | wc -l", returnStdout: true).trim()
+                    
+                                if (resourcesExist.toInteger() > 0) {
+                                    sh 'kubectl delete -f ./' // Delete using all files in the directory
+                                } else {
+                                    echo "No resources found to delete."
+                                }
                             }
                         } else {
                             if(params.ACTION == 'APPLY') {
                                 sh "kubectl apply -f ./${params.YAML_FILE}" // Apply the specific file
                             } else if(params.ACTION == 'DELETE') {
                                 sh "kubectl delete -f ./${params.YAML_FILE}" // Delete using the specific file
+                            }
                         }
-                      }
                     }
                 }
             }
