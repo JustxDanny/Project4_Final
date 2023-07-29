@@ -16,7 +16,8 @@ pipeline {
             }
         }
         stage('Execute on Kubernetes') {
-          script {
+          steps { 
+            script {
               // Navigate to the k8s directory
                     dir("k8s") {
                         if(params.YAML_FILE == 'select_all') {
@@ -31,6 +32,7 @@ pipeline {
                             } else if(params.ACTION == 'DELETE') {
                                 sh "kubectl delete -f ./${params.YAML_FILE}" // Delete using the specific file
                         }
+                      }
                     }
                 }
             }
