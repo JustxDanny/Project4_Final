@@ -16,19 +16,20 @@ pipeline {
             }
         }
         stage('Execute on Kubernetes') {
-            steps {
-                script {
-                      if(params.YAML_FILE == 'select_all') {
-                        if(params.ACTION == 'APPLY') {
-                            sh 'kubectl apply -f ./' // Apply all files in the current directory
-                        } else if(params.ACTION == 'DELETE') {
-                            sh 'kubectl delete -f ./' // Delete using all files in the current directory
-                        }
-                    } else {
-                        if(params.ACTION == 'APPLY') {
-                            sh "kubectl apply -f ./${params.YAML_FILE}" // Apply the specific file
-                        } else if(params.ACTION == 'DELETE') {
-                            sh "kubectl delete -f ./${params.YAML_FILE}" // Delete using the specific file
+          script {
+              // Navigate to the k8s directory
+                    dir("k8s") {
+                        if(params.YAML_FILE == 'select_all') {
+                            if(params.ACTION == 'APPLY') {
+                                sh 'kubectl apply -f ./' // Apply all files in the current directory
+                            } else if(params.ACTION == 'DELETE') {
+                                sh 'kubectl delete -f ./' // Delete using all files in the current directory
+                            }
+                        } else {
+                            if(params.ACTION == 'APPLY') {
+                                sh "kubectl apply -f ./${params.YAML_FILE}" // Apply the specific file
+                            } else if(params.ACTION == 'DELETE') {
+                                sh "kubectl delete -f ./${params.YAML_FILE}" // Delete using the specific file
                         }
                     }
                 }
