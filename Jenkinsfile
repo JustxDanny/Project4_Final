@@ -16,12 +16,13 @@ pipeline {
             steps {
                 script {
                     // List all YAML files in the k8s folder
-                    def yamlFiles = sh(script: "ls k8s/*.yaml", returnStdout: true).trim().split("\n")
+                    def yamlFilesList = sh(script: "ls k8s/*.yaml", returnStdout: true).trim().split("\n")
+                    def yamlFiles = yamlFilesList.join(",")
                     properties([
                         parameters([
                             choice(name: 'FILE', choices: yamlFiles, description: 'Choose YAML file to apply/delete'),
                             choice(name: 'ACTION', choices: ['APPLY', 'DELETE', 'APPLY_ALL', 'DELETE_ALL'], description: 'What action should be taken?'),
-                            choice(name: 'AGENT', choices: ['Agent1', 'Agent2', 'JenkinsMaster'], description: 'Which agent should perform the action?')
+                            choice(name: 'AGENT', choices: ['agent1', 'agent2', 'jenkinsmaster'], description: 'Which agent should perform the action?')
                         ])
                     ])
                 }
@@ -31,7 +32,7 @@ pipeline {
             steps {
                 script {
                     // Configure sudo kubectl for the EKS cluster
-                    sh "aws eks update-kubeconfig --name eks --profile $AWS_PROFILE"
+                    sh "sudo aws eks update-kubeconfig --name eks --profile $AWS_PROFILE"
                 }
             }
         }
@@ -81,4 +82,3 @@ pipeline {
         }
     }
 }
-
