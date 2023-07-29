@@ -1,0 +1,392 @@
+---
+
+# **Add Namespace**
+
+## file - **namespace.yaml**
+
+```
+apiVersion: v1
+kind: Namespace
+metadata:
+name: monitoring
+```
+
+## commands
+
+```
+kubectl apply -f namespace.yaml
+```
+
+---
+
+# Create Prometheous ConfigMap
+
+## file - **prometheous-configmap.yaml**
+
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+name: prometheus-config
+namespace: monitoring
+data:
+prometheus.yml: |
+global:
+scrape_interval: 15s
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+```
+
+## commands
+
+```
+kubectl apply -f prometheus-configmap.yaml
+```
+
+---
+
+# Promethous Deployment
+
+## file - **promethous-deployment.yaml:**
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: prometheus-deployment
+namespace: monitoring
+labels:
+app: prometheus-server
+spec:
+replicas: 1
+selector:
+matchLabels:
+app: prometheus-server
+template:
+metadata:
+labels:
+app: prometheus-server
+spec:
+containers:
+- name: prometheus
+image: prom/prometheus:latest
+args:
+- "--config.file=/etc/prometheus/prometheus.yml"
+- "--storage.tsdb.path=/prometheus/"
+ports:
+- containerPort: 9090
+volumeMounts:
+- name: prometheus-config-vol
+mountPath: /etc/prometheus/
+volumes:
+- name: prometheus-config-vol
+configMap:
+defaultMode: 420
+name: prometheus-config
+```
+
+## Commands
+
+```
+kubectl apply -f promethous-deployment.yaml
+```
+
+---
+
+# Expose Promethous with a Service
+
+## file - **promethous-service.yaml**
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+name: prometheus-service
+namespace: monitoring
+annotations:
+prometheus.io/scrape: 'true'
+prometheus.io/port: '9090'
+spec:
+selector:
+app: prometheus-server
+type: LoadBalancer
+ports:
+- port: 9090
+targetPort: 9090
+```
+
+## Commands
+
+```
+kubectl apply -f promethous-deployment.yaml
+```
+
+---
+
+# Grafana Deployment
+
+## file - **grafana-deployment.yaml:**
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: grafana-deployment
+spec:
+replicas: 1
+selector:
+matchLabels:
+app: grafana # This is the label the Deployment will look for to identify its pods
+template:
+metadata:
+labels:
+app: grafana # This is the label that will be applied to each pod created by this Deployment
+spec:
+containers:
+- name: grafana
+image: grafana/grafana:latest
+ports:
+- name: grafana
+containerPort: 3000
+```
+
+## Commands
+
+```
+kubectl apply -f grafana-deployment.yaml
+```
+
+---
+
+# Expose Grafana with a Service:
+
+## file - **grafana-service.yaml:**
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+name: grafana
+namespace: monitoring
+spec:
+selector:
+app: grafana
+type: LoadBalancer
+ports:
+- protocol: TCP
+port: 3000
+targetPort: 3000
+```
+
+## Commands
+
+```
+kubectl apply -f grafana-deployment.yaml
+```
+
+---
+
+kubectl get svc grafana -n monitoring  
+then go to the external ip for me its a5a97961305fe455db3eb3239941eaec-912816326.us-west-2.elb.amazonaws.com:3000  
+after all of those
+
+then install node exporter on each EC2 Instance you want to get data from
+
+after that update in a specific Prometheus.yaml file the scrape_targets for it to gather data from  
+\== each instance's public ip + port 9100/metrics for access.
+
+Here's a high-level overview of what needs to be done:
+
+Locate the ConfigMap for Prometheus.  
+Edit the ConfigMap to add new scrape targets.  
+Reload or restart the Prometheus pod to pick up the changes.
+
+---
+
+here we go baby:  
+namespace = monitoring
+
+kubectl get configmap -n == gather name = promethus-config
+
+kubectl edit configmap -n
+
+### nano
+
+If you're more comfortable using nano, you can follow this approach:
+
+Export the ConfigMap to a File
+
+First, export the current ConfigMap contents to a local file
+
+```
+kubectl get configmap <configmap-name> -n <your-namespace> -o yaml > configmap.yaml
+```
+
+Edit the File with Nano
+
+Open the file with nano
+
+```
+nano configmap.yaml
+```
+
+Make your necessary changes in nano. Once done, save and exit (Ctrl + O to write changes, Enter to confirm, and Ctrl + X to exit).
+
+Apply the Changes
+
+Once you've edited the file, apply the changes back to the cluster
+
+```
+kubectl apply -f configmap.yaml -n <your-namespace>
+```
+
+Delete the Temporary File
+
+If you don't need the configmap.yaml file anymore, you can delete it
+
+```
+rm configmap.yaml
+```
+
+### end nano
+
+---
+
+restart prometheus pod to apply changes made from reapplying the config map with new targets
+
+kubectl get pods -n monitoring | grep prometheus
+
+# This deletes the pod you greped and automatically creates a new one on deletion.
+
+kubectl delete pod promethues-deployment-9999-tttt -n monitoring
+
+ive encountered errors in the configurations of the configmap.yaml ,since i added by mistake the adrresses with http:// to the targets  
+and it needs to be a clean ip plus port.
+
+what i did to solve it is
+
+kubectl get configmap prometheus-config -n monitoring -o yaml > current-configmap.yaml
+
+Manually Merge Changes: Open current-configmap.yaml and the file you're trying to apply (configmap.yaml) side by side. Manually incorporate any changes from configmap.yaml into current-configmap.yaml.
+
+Apply the Merged ConfigMap:
+
+kubectl apply -f current-configmap.yaml
+
+Delete the Prometheus Pod: So it can be recreated and pick up the new configuration.
+
+kubectl delete pod -l -n monitoring
+
+after this we check the new pod if its running correctly and it does!!!
+
+kubectl get pods -n monitoring | grep prometheus
+
+prometheus-deployment-759f6c8dd6-llhjz 1/1 Running 0 12s
+
+---
+
+# After this we can go back to grafana and add a query to see
+
+# Go here to download Json file of this AMAZING LOOKING DASHBOARD
+
+https://grafana.com/grafana/dashboards/1860-node-exporter-full/
+
+# Download Json
+
+# Create grafana-dashboard-configmap.yaml with the following content:
+
+apiVersion: v1  
+kind: ConfigMap  
+metadata:  
+name: grafana-dashboards  
+labels:  
+grafana_dashboard: "1"  
+data:  
+my-dashboard.json: |-  
+{  
+... (contents of your dashboard JSON) ...  
+}
+
+### Pass the entire 23k lines of code onto the right place of {Conetent}
+
+# apply the file
+
+before that you delete all the pods that were related to grafana
+
+If you had a service associated with it:
+
+`kubectl delete service grafana -n monitoring`
+
+`kubectl delete deployment grafana-deployment -n monitoring`
+
+### Then redeploy the grafana-service , which is the loadbalancer through which we connect to the grafana service port :3000
+
+kubectl apply -f /home/devops/Terraform_EKS_PROJECT4/k8s/grafana-dashboard-configmap.yaml
+
+then we create prometheus-datasource-configmap.yaml with the following :
+
+\`\`\`
+
+apiVersion: v1
+
+kind: ConfigMap
+
+metadata:
+
+name: grafana-datasources
+
+namespace: monitoring
+
+data:
+
+prometheus.yaml: |
+
+apiVersion: 1
+
+datasources:
+
+\- name: Prometheus
+
+type: prometheus
+
+access: proxy
+
+orgId: 1
+
+url: http://prometheus-service.monitoring:9090
+
+isDefault: true
+
+\`\`\`
+
+apply -f the prometheus-datasource-configmap.yaml 
+= so that our grafana knows to instantly apply the prometheus data source and get data to all our instances!
+
+```
+2. Modify the Grafana Deployment
+Update your Grafana Deployment to mount the ConfigMap as a volume in the Grafana pod and tell Grafana to use it for data source provisioning.
+
+In your grafana-dashboard-deployment.yaml, under the spec.template.spec section, add:
+
+yaml
+Copy code
+      volumes:
+      - name: grafana-datasources
+        configMap:
+          name: grafana-datasources
+And in the containers section of the Grafana container, add:
+
+yaml
+Copy code
+        volumeMounts:
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+This mounts the data source configuration into the path Grafana expects for data source provisioning.
+```
+
+### Gpt- promt that teaches us to update the grafana-dashboard-deployment.yaml with the relevant data to trigger the prometheus datasource!
+
+
+

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090', '3.69.226.65:9100', '3.78.118.146:9100', '18.159.228.220:9100','ab6feb06190a8432da619d4a8c8172ae-d16f236a5417f57c.elb.us-west-2.amazonaws.com/metrics']

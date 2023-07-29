@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:           # <-- This is the missing selector field
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      volumes:
+      - name: grafana-datasources
+        configMap:
+          name: grafana-datasources
+      - name: dashboards
+        emptyDir: {}
+      initContainers:
+      - name: fetch-dashboards
+        image: appropriate/curl:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          curl -o /dashboards/node-exporter-full.json https://grafana-dashboard-project4.s3.us-west-2.amazonaws.com/grafana-dashboard.json
+        volumeMounts:
+        - name: dashboards
+          mountPath: /dashboards
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        volumeMounts:
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: dashboards
+          mountPath: /var/lib/grafana/dashboards
+        env:
+        - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
+          value: /var/lib/grafana/dashboards/node-exporter-full.json

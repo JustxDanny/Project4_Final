@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090', '3.69.226.65:9100', '18.159.228.220:9100', '3.78.118.146:9100']
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"prometheus.yml":"global:\n  scrape_interval: 15s\n\nscrape_configs:\n  - job_name: 'prometheus'\n    static_configs:\n      - targets: ['localhost:9090', '3.69.226.65:9100', '3.75.170.234:9100', '18.196.81.112:9100']\n"},"kind":"ConfigMap","metadata":{"annotations":{},"creationTimestamp":"2023-07-28T05:02:49Z","name":"prometheus-config","namespace":"monitoring","resourceVersion":"44716","uid":"8f64a72b-f5d0-4d0d-80d0-2e656cc8cf49"}}
+  creationTimestamp: "2023-07-28T05:02:49Z"
+  name: prometheus-config
+  namespace: monitoring
+  resourceVersion: "46265"
+  uid: 8f64a72b-f5d0-4d0d-80d0-2e656cc8cf49

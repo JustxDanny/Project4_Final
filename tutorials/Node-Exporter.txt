@@ -1,0 +1,60 @@
+follow guide on :
+https://ourcodeworld.com/articles/read/1686/how-to-install-prometheus-node-exporter-on-ubuntu-2004
+
+## 
+We want to get Metric data to our Prometheus , and for that we need node_exporter's metrics
+Which it knows to extract once you install it on ec2 instance and access it's {Public_ip}:9100/metrics ~url
+
+
+
+
+tar xvf node_exporter-1.3.1.linux-amd64.tar.gz
+node_exporter-1.3.1.linux-amd64/
+node_exporter-1.3.1.linux-amd64/LICENSE
+node_exporter-1.3.1.linux-amd64/NOTICE
+node_exporter-1.3.1.linux-amd64/node_exporter
+
+ubuntu@ip-172-31-17-119:~$ cd node_exporter-1.3.1.linux-amd64
+
+ubuntu@ip-172-31-17-119:~/node_exporter-1.3.1.linux-amd64$ sudo cp node_exporter /usr/local/bin
+
+ubuntu@ip-172-31-17-119:~/node_exporter-1.3.1.linux-amd64$ cd ..
+
+ubuntu@ip-172-31-17-119:~$ rm -rf ./node_exporter-1.3.1.linux-amd64
+
+ubuntu@ip-172-31-17-119:~$ 
+
+ubuntu@ip-172-31-17-119:~$ sudo useradd --no-create-home --shell /bin/false node_exporter
+
+ubuntu@ip-172-31-17-119:~$ sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
+
+ubuntu@ip-172-31-17-119:~$ sudo nano /etc/systemd/system/node_exporter.service
+
+----
+here in nano insert this:
+###
+
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+
+###
+----
+
+
+ubuntu@ip-172-31-17-119:~$ sudo systemctl daemon-reload
+ubuntu@ip-172-31-17-119:~$ sudo systemctl enable node_exporter
+Created symlink /etc/systemd/system/multi-user.target.wants/node_exporter.service → /etc/systemd/system/node_exporter.service.
+ubuntu@ip-172-31-17-119:~$ sudo systemctl start node_exporter

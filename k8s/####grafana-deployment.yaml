@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana  # This is the label the Deployment will look for to identify its pods
+  template:
+    metadata:
+      labels:
+        app: grafana  # This is the label that will be applied to each pod created by this Deployment
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - name: grafana
+          containerPort: 3000

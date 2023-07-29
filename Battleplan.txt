@@ -1,0 +1,87 @@
+Project 4 Final
+
+infrastracture Provinsioning: Using Terraform, create the nessecary resources for an Amazon EKS cluster, including VPC
+,subnets,security groups, and an EKS cluster itself.
+
+Kubernetes Deployment: Create Kubernetes deployment files (YAML manifests) for deploying your Flask application
+to the EKS cluster. This includes defining the container image, enviroment variables, and any
+nessecary resources (such as CPU and memomy limits).
+
+Jenkins ingergration: Modify your Jenkins pipeline to include steps for deploying the EKS cluster.
+ This can involve using Kubernetes CLI (kubectl) to apply the deployment files and manage the Kubernetes resources.
+
+ Load balancer integration: Configure a kubernetes Service of type "LoadBalancer" to expose your 
+ Flask application to the internet.
+ This can be used to route traffic to the EKS cluster and distribute it among the application instances.
+
+Autoscaling: Set up autoscaling for the EKS cluster, 
+allowing it to automatically adjust the number of pods based on CPU or custom metrics.
+This ensures that your application can handle varying levels of traffic without manual intervention.
+
+Monitoring and Logging: Configure monitoring and logging for the EKS cluster using tools like Prometheous and Grafana.
+This allows you to collect metrics, visialize cluster health, and troubleshoot issues effectively.
+
+Continious Deployment: Extend your Jenkins pipeline to support Continious deployment to the EKS cluster.
+Upon successful testing and approval, trigger the deployment process to automatically update the application in the cluster.
+
+            ###Project 4 Final:###
+            Infrastructure Provisioning:
+
+            Use Terraform to provision the necessary AWS resources for an Amazon EKS cluster. This includes:
+            VPC
+            Subnets
+            Security groups
+            EKS cluster
+            Kubernetes Deployment:
+
+            Create Kubernetes deployment files (YAML manifests) to deploy your Flask application to the EKS cluster. This involves:
+            Defining the container image
+            Setting environment variables
+            Allocating necessary resources (like CPU and memory limits)
+            Jenkins Integration:
+
+            Modify your Jenkins pipeline to include steps for deploying to the EKS cluster using the Kubernetes CLI (kubectl).
+            Load Balancer Integration:
+
+            Configure a Kubernetes Service of type "LoadBalancer" to expose the Flask application to the internet.
+            Autoscaling:
+
+            Implement autoscaling for the EKS cluster to adjust the number of pods based on metrics like CPU or custom metrics.
+            Monitoring and Logging:
+
+            Set up monitoring and logging for the EKS cluster using tools such as Prometheus and Grafana.
+            Continuous Deployment:
+
+            Extend the Jenkins pipeline to support continuous deployment to the EKS cluster. After successful tests and approval, the deployment process should automatically update the application in the cluster.
+
+
+
+
+
+            #### Jenkins Step ####
+
+            Step-by-Step Actions:
+Jenkins Pipeline for EKS Deployment:
+
+Create a Jenkinsfile that describes the pipeline stages and steps.
+This will include stages for Git checkout, Terraform initialization, Terraform apply, and Kubernetes resource deployment.
+
+Deploy Prometheus & Grafana:
+Use Helm, a Kubernetes package manager, to deploy Prometheus and Grafana. Helm makes it easier to manage and deploy applications on Kubernetes.
+Configure Prometheus to scrape metrics from your EKS nodes, pods, and other relevant targets.
+Set up Grafana to use Prometheus as a data source.
+
+Setup Grafana Dashboards:
+Import or create Grafana dashboards that display the metrics you're interested in.
+This will typically include CPU usage, memory usage, and other relevant metrics for your applications and nodes.
+
+Configure Autoscaling and Monitoring:
+Set up the Kubernetes metrics-server. This is required for the HPA to work.
+Configure HPAs for your applications based on the desired metrics (e.g., CPU usage).
+In Grafana, set up alerts or visual indicators for when autoscaling events occur.
+
+Jenkins Cleanup Job:
+Create a separate Jenkins job or pipeline stage for cleanup. This will run terraform destroy and any other necessary cleanup steps.
+
+Integrate Prometheus & Grafana Monitoring into the Cleanup Job:
+Before running terraform destroy, ensure that all Prometheus and Grafana resources are gracefully shut down. This might involve deleting Helm releases or specific Kubernetes resources.
