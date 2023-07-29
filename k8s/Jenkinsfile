@@ -30,7 +30,7 @@ pipeline {
                                     timeout(time: 5, unit: 'MINUTES') {
                                         waitUntil {
                                             script {
-                                                def namespaceStatus = sh(script: "kubectl get ns monitoring --no-headers | awk '{print $2}'", returnStdout: true).trim()
+                                                def namespaceStatus = sh(script: "kubectl get ns monitoring --no-headers | awk '{print \$2}'", returnStdout: true).trim()
                                                 return namespaceStatus == "Active"
                                             }
                                         }
