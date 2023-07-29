@@ -39,25 +39,24 @@ pipeline {
 
                                 sh 'kubectl apply -f ./' // Apply all other files in the directory
 
-                            } else if(params.ACTION == 'DELETE') {
-                                def resourcesExist = sh(script: "kubectl get all --selector=app=flask-app -n monitoring | wc -l", returnStdout: true).trim()
-                    
-                                if (resourcesExist.toInteger() > 0) {
-                                    sh 'kubectl delete -f ./' // Delete using all files in the directory
+                                } else if(params.ACTION == 'DELETE') {
+                                        
+                                        // Debug: List all resources in the monitoring namespace
+                                        sh 'kubectl get all -n monitoring'
+
+                                        // Generic delete for all yaml files in the directory
+                                        sh 'kubectl delete -f ./' 
+                                    }
                                 } else {
-                                    echo "No resources found to delete."
-                                }
-                            }
-                        } else {
-                            if(params.ACTION == 'APPLY') {
-                                sh "kubectl apply -f ./${params.YAML_FILE}" // Apply the specific file
-                            } else if(params.ACTION == 'DELETE') {
-                                sh "kubectl delete -f ./${params.YAML_FILE}" // Delete using the specific file
+                                    if(params.ACTION == 'APPLY') {
+                                        sh "kubectl apply -f ./${params.YAML_FILE}" // Apply the specific file
+                                    } else if(params.ACTION == 'DELETE') {
+                                        sh "kubectl delete -f ./${params.YAML_FILE}" // Delete using the specific file
                             }
                         }
                     }
                 }
             }
-        }
+        }      
     }
 }
